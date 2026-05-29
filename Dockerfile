@@ -4,7 +4,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm@11.4.0 && pnpm install --frozen-lockfile --ignore-scripts
 
 # ── Stage 2: Build ────────────────────────────────────────────────────────────
 FROM node:24-alpine AS builder
@@ -20,7 +20,7 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm install -g pnpm && pnpm build
+RUN npm install -g pnpm@11.4.0 && pnpm build
 
 # ── Stage 3: Production runner ───────────────────────────────────────────────
 FROM node:24-alpine AS runner
