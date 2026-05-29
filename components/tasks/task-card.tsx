@@ -33,6 +33,7 @@ type TaskCardProps = {
   columnId: string
   allColumns?: { id: string; title: string }[]
   searchQuery?: string
+  onMutate?: () => void
 }
 
 function HighlightText({ text, query }: { text: string; query?: string }) {
@@ -98,7 +99,7 @@ function getDaysLabel(dateStr: string, isCompleted: boolean): { label: string; c
   return { label: `${diff} ngày`, className: "text-muted-foreground" }
 }
 
-export function TaskCard({ task, boardId, columnId, allColumns, searchQuery }: TaskCardProps) {
+export function TaskCard({ task, boardId, columnId, allColumns, searchQuery, onMutate }: TaskCardProps) {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [completed, setCompleted] = useState(task.is_completed ?? false)
@@ -136,22 +137,26 @@ export function TaskCard({ task, boardId, columnId, allColumns, searchQuery }: T
     setSaving(false)
     setEditing(false)
     setOpen(false)
+    onMutate?.()
   }
 
   async function handleDelete() {
     if (!confirm(`Xóa task "${task.title}"?`)) return
     setOpen(false)
     await deleteTask(boardId, task.id)
+    onMutate?.()
   }
 
   async function handleDuplicate() {
     setOpen(false)
     await duplicateTask(boardId, task.id)
+    onMutate?.()
   }
 
   async function handleChangePriority(newPriority: string) {
     setPriority(newPriority)
     await updateTask(boardId, task.id, task.title, task.description ?? undefined, newPriority, task.due_date ?? null)
+    onMutate?.()
   }
 
   function cyclePriority(e: React.MouseEvent) {
@@ -166,6 +171,7 @@ export function TaskCard({ task, boardId, columnId, allColumns, searchQuery }: T
     const next = !completed
     setCompleted(next)
     await toggleTaskComplete(boardId, task.id, next)
+    onMutate?.()
   }
 
   const priorityCfg = PRIORITY_CONFIG[(priority) as keyof typeof PRIORITY_CONFIG] ?? PRIORITY_CONFIG.medium

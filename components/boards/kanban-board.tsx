@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   DndContext,
@@ -46,7 +46,9 @@ type KanbanBoardProps = {
 
 export function KanbanBoard({ board }: KanbanBoardProps) {
   const router = useRouter()
+  const [, startTransition] = useTransition()
   const [columns, setColumns] = useState<ColumnWithTasks[]>(board.columns)
+  const channelRef = useRef<ReturnType<ReturnType<typeof createBrowserClient>["channel"]> | null>(null)
   const [addingColumn, setAddingColumn] = useState(false)
   const [newColumnTitle, setNewColumnTitle] = useState("")
   const [pending, setPending] = useState(false)
@@ -117,25 +119,37 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
   // Realtime subscription — tự cập nhật khi có thay đổi
   useEffect(() => {
     const supabase = createBrowserClient()
+    const refresh = () => startTransition(() => router.refresh())
 
     const channel = supabase
       .channel(`board-${board.id}`)
+      // Broadcast: nhận tín hiệu từ tab khác sau mỗi mutation
+      .on("broadcast", { event: "board-update" }, refresh)
+      // Postgres changes: backup cho columns (ít RLS phức tạp hơn)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "columns", filter: `board_id=eq.${board.id}` },
-        () => router.refresh(),
+        refresh,
       )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "tasks" },
-        () => router.refresh(),
-      )
-      .subscribe()
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          channelRef.current = channel
+          toast.success("Realtime connected", { id: "rt-status", duration: 2000 })
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          toast.error(`Realtime ${status}${err ? ": " + err.message : ""}`, { id: "rt-status" })
+        }
+      })
 
     return () => {
-      supabase.removeChannel(channel)
+      channelRef.current = null
+      void supabase.removeChannel(channel)
     }
-  }, [board.id, router])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [board.id])
+
+  function broadcastUpdate() {
+    channelRef.current?.send({ type: "broadcast", event: "board-update", payload: {} })
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -163,6 +177,7 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
       const reordered = arrayMove(columns, oldIndex, newIndex)
       setColumns(reordered)
       await reorderColumns(board.id, reordered.map((c) => c.id))
+      broadcastUpdate()
       return
     }
 
@@ -189,6 +204,7 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
         )
       )
       await Promise.all(reordered.map((t, idx) => moveTask(board.id, t.id, sourceColumn.id, idx)))
+      broadcastUpdate()
       return
     }
 
@@ -208,6 +224,7 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
     )
 
     await moveTask(board.id, activeId, targetColumn.id, newPosition)
+    broadcastUpdate()
   }
 
   function handleExport() {
@@ -361,7 +378,7 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
       <div className="flex gap-4 p-6 overflow-x-auto flex-1 items-start">
         <SortableContext items={columns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
           {columns.map((column) => (
-            <KanbanColumn key={column.id} column={column} boardId={board.id} priorityFilter={priorityFilter} searchQuery={searchQuery} hideCompleted={hideCompleted} collapseAll={collapseAll} allColumns={columnMeta} />
+            <KanbanColumn key={column.id} column={column} boardId={board.id} priorityFilter={priorityFilter} searchQuery={searchQuery} hideCompleted={hideCompleted} collapseAll={collapseAll} allColumns={columnMeta} onMutate={broadcastUpdate} />
           ))}
         </SortableContext>
 

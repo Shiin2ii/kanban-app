@@ -41,9 +41,10 @@ type KanbanColumnProps = {
   hideCompleted?: boolean
   collapseAll?: boolean | null
   allColumns?: { id: string; title: string }[]
+  onMutate?: () => void
 }
 
-export function KanbanColumn({ column, boardId, priorityFilter = "all", searchQuery = "", hideCompleted = false, collapseAll = null, allColumns }: KanbanColumnProps) {
+export function KanbanColumn({ column, boardId, priorityFilter = "all", searchQuery = "", hideCompleted = false, collapseAll = null, allColumns, onMutate }: KanbanColumnProps) {
   const [addingTask, setAddingTask] = useState(false)
   const [newTaskTitle, setNewTaskTitle] = useState("")
   const [newTaskDescription, setNewTaskDescription] = useState("")
@@ -78,11 +79,13 @@ export function KanbanColumn({ column, boardId, priorityFilter = "all", searchQu
     setNewTaskDueDate("")
     setAddingTask(false)
     setPending(false)
+    onMutate?.()
   }
 
   async function handleDeleteColumn() {
     if (!confirm(`Xóa cột "${column.title}" và tất cả task trong đó?`)) return
     await deleteColumn(boardId, column.id)
+    onMutate?.()
   }
 
   async function handleRenameColumn() {
@@ -90,12 +93,14 @@ export function KanbanColumn({ column, boardId, priorityFilter = "all", searchQu
     if (!trimmed) { setColumnTitle(column.title); setEditingTitle(false); return }
     if (trimmed !== column.title) await updateColumnTitle(boardId, column.id, trimmed)
     setEditingTitle(false)
+    onMutate?.()
   }
 
   async function handleClearCompleted() {
     const count = column.tasks.filter((t) => t.is_completed).length
     if (!confirm(`Xóa ${count} task đã hoàn thành trong cột này?`)) return
     await clearCompletedTasks(boardId, column.id)
+    onMutate?.()
   }
 
   const [collapsed, setCollapsed] = useState(false)
@@ -164,6 +169,7 @@ export function KanbanColumn({ column, boardId, priorityFilter = "all", searchQu
           {...listeners}
           className="shrink-0 text-muted-foreground hover:text-foreground transition-colors cursor-grab active:cursor-grabbing"
           title="Kéo để sắp xếp cột"
+          suppressHydrationWarning
         >
           <GripVertical className="h-3.5 w-3.5" />
         </button>
@@ -275,7 +281,7 @@ export function KanbanColumn({ column, boardId, priorityFilter = "all", searchQu
           className="flex flex-col gap-2 p-2 overflow-y-auto flex-1 min-h-8"
         >
           {sortedAndFilteredTasks.map((task) => (
-            <TaskCard key={task.id} task={task} boardId={boardId} columnId={column.id} allColumns={allColumns} searchQuery={searchQuery} />
+            <TaskCard key={task.id} task={task} boardId={boardId} columnId={column.id} allColumns={allColumns} searchQuery={searchQuery} onMutate={onMutate} />
           ))}
 
           {addingTask ? (
