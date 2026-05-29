@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createServerClient } from "@/lib/supabase/server"
-import type { ActionResult, Board } from "@/types"
+import type { ActionResult, Board, BoardStats } from "@/types"
 
 export async function getBoards(): Promise<Board[]> {
   const supabase = await createServerClient()
@@ -15,6 +15,29 @@ export async function getBoards(): Promise<Board[]> {
     .order("created_at", { ascending: false })
 
   return data ?? []
+}
+
+export async function getBoardsWithStats(): Promise<BoardStats[]> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const today = new Date().toISOString().split("T")[0]
+  const { data } = await supabase
+    .from("boards")
+    .select("id, title, created_at, user_id, columns(tasks(id, is_completed, due_date))")
+    .order("created_at", { ascending: false })
+
+  if (!data) return []
+
+  return data.map((b) => {
+    const { columns, ...boardData } = b as typeof b & { columns: { tasks: { id: string; is_completed: boolean | null; due_date: string | null }[] }[] }
+    const tasks = columns.flatMap((c) => c.tasks)
+    const taskCount = tasks.length
+    const doneCount = tasks.filter((t) => t.is_completed).length
+    const overdueCount = tasks.filter((t) => !!(t.due_date && t.due_date < today && !t.is_completed)).length
+    return { ...boardData, taskCount, doneCount, overdueCount } as BoardStats
+  })
 }
 
 export async function createBoard(

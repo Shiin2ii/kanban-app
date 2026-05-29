@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,8 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kanban Task Manager",
-  description: "Manage your tasks with a beautiful Kanban board",
+  title: {
+    default: "KanbanFlow",
+    template: "%s · KanbanFlow",
+  },
+  description: "Quản lý công việc thông minh với Kanban board — Realtime, Drag & Drop, Supabase.",
 };
 
 export default function RootLayout({
@@ -27,10 +31,13 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
           <Toaster />
+        </ThemeProvider>
         </body>
     </html>
   );

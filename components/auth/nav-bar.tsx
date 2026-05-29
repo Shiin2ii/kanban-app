@@ -3,6 +3,7 @@ import { Layers } from "lucide-react"
 import { createServerClient } from "@/lib/supabase/server"
 import { LogoutButton } from "@/components/auth/logout-button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 export async function NavBar() {
   const supabase = await createServerClient()
@@ -21,6 +22,7 @@ export async function NavBar() {
         <span>KanbanFlow</span>
       </Link>
       <div className="flex items-center gap-3">
+        <ThemeToggle />
         <div className="flex items-center gap-2.5">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="text-xs bg-primary text-primary-foreground">{initials}</AvatarFallback>

@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react"
 import { notFound } from "next/navigation"
 import { getBoardWithColumns } from "@/lib/actions/columns"
 import { KanbanBoard } from "@/components/boards/kanban-board"
+import { BoardTitleEditor } from "@/components/boards/board-title-editor"
 
 type BoardPageProps = {
   params: Promise<{ boardId: string }>
@@ -27,7 +28,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="h-4 w-px bg-border" />
-        <h1 className="text-base font-semibold truncate">{board.title}</h1>
+        <BoardTitleEditor boardId={board.id} title={board.title} />
         <span className="text-xs text-muted-foreground shrink-0">
           {board.columns.length} cột · {totalTasks} task
         </span>

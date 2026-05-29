@@ -81,6 +81,9 @@ export type Database = {
           column_id: string
           title: string
           description: string | null
+          priority: string | null
+          due_date: string | null
+          is_completed: boolean
           position: number
           created_at: string
         }
@@ -89,6 +92,9 @@ export type Database = {
           column_id: string
           title: string
           description?: string | null
+          priority?: string | null
+          due_date?: string | null
+          is_completed?: boolean
           position?: number
           created_at?: string
         }
@@ -97,6 +103,9 @@ export type Database = {
           column_id?: string
           title?: string
           description?: string | null
+          priority?: string | null
+          due_date?: string | null
+          is_completed?: boolean
           position?: number
           created_at?: string
         }

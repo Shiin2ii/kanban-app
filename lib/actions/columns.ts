@@ -99,3 +99,19 @@ export async function updateColumnTitle(
   revalidatePath(`/boards/${boardId}`)
   return { data: null, error: null }
 }
+
+export async function reorderColumns(
+  boardId: string,
+  columnIds: string[]
+): Promise<ActionResult<null>> {
+  const supabase = await createServerClient()
+
+  await Promise.all(
+    columnIds.map((id, index) =>
+      supabase.from("columns").update({ position: index }).eq("id", id)
+    )
+  )
+
+  revalidatePath(`/boards/${boardId}`)
+  return { data: null, error: null }
+}

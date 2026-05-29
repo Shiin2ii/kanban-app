@@ -18,6 +18,12 @@ export type BoardWithColumns = Board & {
   columns: ColumnWithTasks[]
 }
 
+export type BoardStats = Board & {
+  taskCount: number
+  doneCount: number
+  overdueCount: number
+}
+
 export type ActionResult<T> = {
   data: T | null
   error: string | null
