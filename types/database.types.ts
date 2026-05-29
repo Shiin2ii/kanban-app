@@ -28,6 +28,7 @@ export type Database = {
           avatar_url?: string | null
           updated_at?: string | null
         }
+        Relationships: []
       }
       boards: {
         Row: {
@@ -48,6 +49,7 @@ export type Database = {
           title?: string
           created_at?: string
         }
+        Relationships: []
       }
       columns: {
         Row: {
@@ -71,6 +73,7 @@ export type Database = {
           position?: number
           created_at?: string
         }
+        Relationships: []
       }
       tasks: {
         Row: {
@@ -97,6 +100,7 @@ export type Database = {
           position?: number
           created_at?: string
         }
+        Relationships: []
       }
       task_attachments: {
         Row: {
@@ -120,10 +124,12 @@ export type Database = {
           file_name?: string
           created_at?: string
         }
+        Relationships: []
       }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
     Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }
