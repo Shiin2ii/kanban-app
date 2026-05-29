@@ -299,7 +299,7 @@ export function KanbanColumn({ column, boardId, priorityFilter = "all", searchQu
                 className="resize-none text-sm"
               />
               <div className="flex gap-2">
-                <Select value={newTaskPriority} onValueChange={setNewTaskPriority} disabled={pending}>
+                <Select value={newTaskPriority} onValueChange={(v) => setNewTaskPriority(v ?? "medium")} disabled={pending}>
                   <SelectTrigger className="h-8 text-xs flex-1">
                     <SelectValue />
                   </SelectTrigger>

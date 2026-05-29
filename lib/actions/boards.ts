@@ -30,8 +30,16 @@ export async function getBoardsWithStats(): Promise<BoardStats[]> {
 
   if (!data) return []
 
-  return data.map((b) => {
-    const { columns, ...boardData } = b as typeof b & { columns: { tasks: { id: string; is_completed: boolean | null; due_date: string | null }[] }[] }
+  type RawBoard = {
+    id: string
+    title: string
+    created_at: string
+    user_id: string
+    columns: { tasks: { id: string; is_completed: boolean | null; due_date: string | null }[] }[]
+  }
+
+  return (data as RawBoard[]).map((b) => {
+    const { columns, ...boardData } = b
     const tasks = columns.flatMap((c) => c.tasks)
     const taskCount = tasks.length
     const doneCount = tasks.filter((t) => t.is_completed).length

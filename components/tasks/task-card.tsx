@@ -329,7 +329,7 @@ export function TaskCard({ task, boardId, columnId, allColumns, searchQuery }: T
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Ưu tiên</Label>
-                  <Select value={priority} onValueChange={setPriority} disabled={saving}>
+                  <Select value={priority} onValueChange={(v) => setPriority(v ?? "medium")} disabled={saving}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
