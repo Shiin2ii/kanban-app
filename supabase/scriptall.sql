@@ -182,10 +182,49 @@ CREATE POLICY "Users can delete attachments of own tasks"
   );
 
 -- ==========================================
--- 6. ENABLE REALTIME
+-- 6. NOTIFICATIONS
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  type       text NOT NULL, -- 'task_overdue' | 'task_due_today' | 'task_completed' | 'board_created'
+  title      text NOT NULL,
+  body       text,
+  is_read    boolean NOT NULL DEFAULT false,
+  link       text,
+  ref_id     text,          -- id của entity liên quan (task_id, board_id...)
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Ngăn trùng lặp thông báo cùng loại cho cùng entity
+CREATE UNIQUE INDEX IF NOT EXISTS notifications_user_type_ref_unique
+  ON public.notifications (user_id, type, ref_id)
+  WHERE ref_id IS NOT NULL;
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own notifications"
+  ON public.notifications FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own notifications"
+  ON public.notifications FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own notifications"
+  ON public.notifications FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own notifications"
+  ON public.notifications FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- ==========================================
+-- 7. ENABLE REALTIME
 -- ==========================================
 ALTER PUBLICATION supabase_realtime ADD TABLE public.tasks;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.columns;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
 INSERT INTO auth.users (
   id,
   instance_id,

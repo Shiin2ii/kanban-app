@@ -24,6 +24,10 @@ export type BoardStats = Board & {
   overdueCount: number
 }
 
+export type Notification = Database["public"]["Tables"]["notifications"]["Row"]
+
+export type NotificationType = "task_overdue" | "task_due_today" | "task_completed" | "board_created"
+
 export type ActionResult<T> = {
   data: T | null
   error: string | null

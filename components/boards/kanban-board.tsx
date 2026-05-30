@@ -366,11 +366,23 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
           </div>
         </div>
         {stats.total > 0 && (
-          <div className="flex items-center gap-3 text-xs text-muted-foreground pb-1">
-            <span className="font-medium text-foreground">{stats.total} tasks</span>
-            <span className="flex items-center gap-1 text-emerald-500"><CheckCheck className="h-3 w-3" />{stats.done} hoàn thành ({Math.round(stats.done / stats.total * 100)}%)</span>
-            {stats.highPriority > 0 && <span className="flex items-center gap-1 text-red-500"><Circle className="h-2 w-2 fill-current" />{stats.highPriority} ưu tiên cao</span>}
-            {stats.overdue > 0 && <span className="flex items-center gap-1 text-orange-500"><AlertTriangle className="h-3 w-3" />{stats.overdue} quá hạn</span>}
+          <div className="pb-2 space-y-1.5">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">{stats.total} tasks</span>
+              <span className="flex items-center gap-1 text-emerald-500"><CheckCheck className="h-3 w-3" />{stats.done} hoàn thành ({Math.round(stats.done / stats.total * 100)}%)</span>
+              {stats.highPriority > 0 && <span className="flex items-center gap-1 text-red-500"><Circle className="h-2 w-2 fill-current" />{stats.highPriority} ưu tiên cao</span>}
+              {stats.overdue > 0 && <span className="flex items-center gap-1 text-orange-500"><AlertTriangle className="h-3 w-3" />{stats.overdue} quá hạn</span>}
+            </div>
+            {/* Progress bar */}
+            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.round(stats.done / stats.total * 100)}%`,
+                  backgroundColor: BOARD_COLORS.find((c) => c.id === boardColor)?.hex ?? "#3b82f6",
+                }}
+              />
+            </div>
           </div>
         )}
       </div>

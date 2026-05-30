@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createServerClient } from "@/lib/supabase/server"
+import { createTaskCompletedNotification } from "@/lib/actions/notifications"
 import type { ActionResult, Task } from "@/types"
 
 export async function createTask(
@@ -111,12 +112,24 @@ export async function toggleTaskComplete(
   isCompleted: boolean
 ): Promise<ActionResult<null>> {
   const supabase = await createServerClient()
+
+  // Lấy title để tạo thông báo
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("title")
+    .eq("id", taskId)
+    .single()
+
   const { error } = await supabase
     .from("tasks")
     .update({ is_completed: isCompleted })
     .eq("id", taskId)
 
   if (error) return { data: null, error: error.message }
+
+  if (isCompleted && task?.title) {
+    await createTaskCompletedNotification(taskId, task.title, boardId)
+  }
 
   revalidatePath(`/boards/${boardId}`)
   return { data: null, error: null }

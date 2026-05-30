@@ -1,7 +1,9 @@
 import { getBoardsWithStats } from "@/lib/actions/boards"
+import { generateDueDateNotifications } from "@/lib/actions/notifications"
 import { createServerClient } from "@/lib/supabase/server"
 import { BoardList } from "@/components/boards/board-list"
 import { CreateBoardDialog } from "@/components/boards/create-board-dialog"
+import { TemplatePicker } from "@/components/boards/template-picker"
 import { ClipboardList, CheckCheck, Loader, AlertTriangle } from "lucide-react"
 
 export default async function BoardsPage() {
@@ -10,6 +12,9 @@ export default async function BoardsPage() {
     getBoardsWithStats(),
     supabase.auth.getUser(),
   ])
+
+  // Tạo thông báo quá hạn / đến hạn hôm nay
+  await generateDueDateNotifications()
 
   const username = user?.user_metadata?.username as string | undefined
   const totalTasks = boards.reduce((s, b) => s + b.taskCount, 0)
@@ -31,7 +36,10 @@ export default async function BoardsPage() {
               : "Tạo board đầu tiên để bắt đầu quản lý công việc"}
           </p>
         </div>
-        <CreateBoardDialog />
+        <div className="flex items-center gap-2">
+          <TemplatePicker />
+          <CreateBoardDialog />
+        </div>
       </div>
 
       {totalTasks > 0 && (
