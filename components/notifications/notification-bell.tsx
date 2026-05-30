@@ -49,25 +49,25 @@ export function NotificationBell({ notifications: initial, unreadCount: initialC
       prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
     )
     setUnreadCount((c) => Math.max(0, c - 1))
-    startTransition(() => markAsRead(id))
+    startTransition(() => { void markAsRead(id) })
   }
 
   function handleMarkAllRead() {
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
     setUnreadCount(0)
-    startTransition(() => markAllAsRead())
+    startTransition(() => { void markAllAsRead() })
   }
 
   function handleDelete(id: string, wasUnread: boolean) {
     setNotifications((prev) => prev.filter((n) => n.id !== id))
     if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1))
-    startTransition(() => deleteNotification(id))
+    startTransition(() => { void deleteNotification(id) })
   }
 
   function handleClearAll() {
     setNotifications([])
     setUnreadCount(0)
-    startTransition(() => clearAllNotifications())
+    startTransition(() => { void clearAllNotifications() })
   }
 
   function handleClickNotif(notif: Notification) {
