@@ -107,13 +107,14 @@ export async function generateDueDateNotifications(): Promise<void> {
 
   // Lấy tasks còn active có due_date
   type TaskRow = { id: string; title: string; due_date: string; columns: { boards: { id: string } | null } | null }
-  const { data: tasks } = await supabase
+  const { data: rawTasks } = await supabase
     .from("tasks")
     .select("id, title, due_date, columns!inner(boards!inner(id))")
     .eq("is_completed", false)
     .not("due_date", "is", null)
     .lte("due_date", today)
 
+  const tasks = rawTasks as unknown as TaskRow[] | null
   if (!tasks || tasks.length === 0) return
 
   const inserts: {
@@ -126,7 +127,7 @@ export async function generateDueDateNotifications(): Promise<void> {
     is_read: boolean
   }[] = []
 
-  for (const task of tasks as unknown as TaskRow[]) {
+  for (const task of tasks) {
     const boardId = task.columns?.boards?.id
     if (!boardId) continue
 
